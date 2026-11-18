@@ -1,0 +1,138 @@
+
+import java.util.*;
+
+class Process {
+    int processId;
+    int logicalClock;
+
+    Process(int processId) {
+        this.processId = processId;
+        this.logicalClock = 0;
+    }
+
+    void internalEvent() {
+        logicalClock++;
+        System.out.println("P" + processId +
+                " | Internal Event | Timestamp: " + logicalClock);
+    }
+
+    int sendMessage() {
+        logicalClock++;
+        System.out.println("P" + processId +
+                " | Send Message | Timestamp: " + logicalClock);
+        return logicalClock;
+    }
+
+    void receiveMessage(int receivedTimestamp) {
+        logicalClock = Math.max(logicalClock, receivedTimestamp) + 1;
+
+        System.out.println("P" + processId +
+                " | Receive Message | Received Timestamp: " +
+                receivedTimestamp +
+                " | Updated Clock: " + logicalClock);
+    }
+}
+
+public class LamportClockSimulator {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("==================================");
+        System.out.println(" LAMPORT LOGICAL CLOCK SIMULATOR");
+        System.out.println("==================================");
+
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+
+        Process[] processes = new Process[n];
+
+        for (int i = 0; i < n; i++) {
+            processes[i] = new Process(i + 1);
+        }
+
+        int choice;
+
+        do {
+            System.out.println("\n========== MENU ==========");
+            System.out.println("1. Internal Event");
+            System.out.println("2. Send Message");
+            System.out.println("3. Receive Message");
+            System.out.println("4. Display Clocks");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+
+                case 1:
+                    System.out.print("Enter process ID: ");
+                    int internalId = sc.nextInt();
+
+                    if (isValid(internalId, n)) {
+                        processes[internalId - 1].internalEvent();
+                    } else {
+                        System.out.println("Invalid process ID!");
+                    }
+                    break;
+
+                case 2:
+                    System.out.print("Enter sender process ID: ");
+                    int sender = sc.nextInt();
+
+                    if (isValid(sender, n)) {
+                        int timestamp =
+                                processes[sender - 1].sendMessage();
+
+                        System.out.println(
+                                "Message timestamp: " + timestamp);
+                    } else {
+                        System.out.println("Invalid process ID!");
+                    }
+                    break;
+
+                case 3:
+                    System.out.print("Enter receiver process ID: ");
+                    int receiver = sc.nextInt();
+
+                    System.out.print("Enter received timestamp: ");
+                    int timestamp = sc.nextInt();
+
+                    if (isValid(receiver, n) && timestamp >= 0) {
+                        processes[receiver - 1]
+                                .receiveMessage(timestamp);
+                    } else {
+                        System.out.println("Invalid input!");
+                    }
+                    break;
+
+                case 4:
+                    System.out.println("\nCurrent Logical Clocks:");
+
+                    for (Process p : processes) {
+                        System.out.println(
+                                "Process P" + p.processId +
+                                " = " + p.logicalClock);
+                    }
+                    break;
+
+                case 5:
+                    System.out.println(
+                            "Exiting Lamport Clock Simulator...");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice!");
+            }
+
+        } while (choice != 5);
+
+        sc.close();
+    }
+
+    static boolean isValid(int id, int n) {
+        return id >= 1 && id <= n;
+    }
+}
